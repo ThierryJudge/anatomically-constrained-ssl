@@ -43,8 +43,6 @@ class AnatomicallyConstrainedLearningBase(SSLTask):
             lambda_semi=0.5,
             mem_len: int = 0,
             pretraining_steps: int = 1000,
-            # freeze_discriminator: bool = False,
-            # discriminator_step_update: int = 5,
             training_schedule: str = '1:1',
             *args,
             **kwargs):
@@ -56,7 +54,6 @@ class AnatomicallyConstrainedLearningBase(SSLTask):
         self.discriminator = get_discriminator(len(self.hparams.data_params.labels), self.output_size)
 
         self.adversarial_loss = nn.BCEWithLogitsLoss()
-        # self.adversarial_loss = nn.MSELoss()
 
         pattern = re.compile(r"[0-9]+:[0-9]+$")
         assert bool(pattern.match(training_schedule))
@@ -134,6 +131,14 @@ class AnatomicallyConstrainedLearningBase(SSLTask):
                 self.sample_memory.extend(list(zip(predictions, metric_values)))
 
     def get_samples(self, example_tensor: Tensor):
+        """Get samples from sample_memory
+        Args:
+           example_tensor:
+        Returns:
+           generator_prediction:
+           discriminator_target:
+        """
+
         batch = random.sample(
             self.sample_memory,
             len(example_tensor) if len(self.sample_memory) > len(example_tensor) else len(self.sample_memory),
@@ -197,9 +202,6 @@ class AnatomicallyConstrainedLearningBase(SSLTask):
         self._val_discriminator_target.append(discriminator_target.detach())
         self._val_discriminator_pred.append(discriminator_prediction.detach())
 
-        # Do not consider improvements if anatomical validity is under 10%
-        # early_stop = supervised_loss if discriminator_target.float().mean() > 0.1 \
-        #     else tensor([10]).type_as(supervised_loss)
         logs = {
             "early_stop_on": supervised_loss,
             "val_loss": supervised_loss,
@@ -238,8 +240,6 @@ class AnatomicallyConstrainedLearningBase(SSLTask):
             self.trainer.logger.experiment.log_confusion_matrix(matrix=cm, step=self.current_epoch, file_name=file_name)
 
     def on_train_epoch_end(self) -> None:
-        # for lr_scheduler in self.lr_schedulers():
-        #     lr_scheduler.step()
         sch = self.lr_schedulers()
         sch.step()
 
@@ -251,28 +251,10 @@ class AnatomicallyConstrainedLearningBase(SSLTask):
         opt_d = torch.optim.Adam(
             self.discriminator.parameters(), lr=0.0002, betas=(b1, b2), weight_decay=0.001
         )
-        # def lambda_d(epoch):
-        #     print(self.hparams.lr if epoch < self.pretraining_epochs else self.hparams.lr / 2)
-        #     return self.hparams.lr if epoch < self.pretraining_epochs else self.hparams.lr / 2
+
         lambda_d = lambda epoch: 1 if epoch < self.pretraining_epochs else 0.5
         scheduler_d = LambdaLR(opt_d, lr_lambda=lambda_d)
         return [opt_g, opt_d], [scheduler_d]
-        # return [opt_g, opt_d]
-
-        # scheduler_d = ReduceLROnPlateau(opt_d, patience=20, factor=0.5, verbose=True)
-        #
-        # schedulers = [
-        #     {
-        #         "scheduler": scheduler_g,
-        #         "monitor": "val_loss",
-        #     },
-        #     {
-        #         "scheduler": scheduler_d,
-        #         "monitor": "val_loss",
-        #     },
-        # ]
-        #
-        # return [opt_g, opt_d], schedulers
 
     def log_images(
         self, title: str, num_images: int, axes_content: Dict[str, np.ndarray], info: Optional[List[str]] = None

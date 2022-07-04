@@ -16,6 +16,15 @@ class ACSSL(AnatomicallyConstrainedLearningBase):
         self.automatic_optimization = False
 
     def supervised_training_step(self, batch, batch_idx) -> Dict:
+        """
+        Supervised training step for batch
+        Args:
+            batch: input batch
+            batch_idx: index of current batch
+        Returns:
+            logs: metrics for current state of training
+        """
+
         opt_g, opt_d = self.optimizers()
         x, y = batch[Tags.img], batch[Tags.gt]
 
@@ -23,7 +32,6 @@ class ACSSL(AnatomicallyConstrainedLearningBase):
         discriminator_target = self.get_discriminator_target(generator_prediction, **batch)
         self.save_sample(generator_prediction, discriminator_target)
 
-        # if self.global_step >= self.hparams.pretraining_steps:
         if self.current_epoch >= self.pretraining_epochs and self.training_schedule[self.global_step % len(self.training_schedule)]:
             metrics = self.compute_segmentation_metrics(generator_prediction, y)
             supervised_loss = (self.hparams.ce_weight  * metrics["ce"]) + (self.hparams.dice_weight * (1 - metrics["dice"]))
@@ -48,11 +56,6 @@ class ACSSL(AnatomicallyConstrainedLearningBase):
             opt_g.step()
             opt_g.zero_grad()
 
-            # if (batch_idx + 1) % self.hparams.discriminator_step_update == 0:
-            #     discriminator_logs = self.discriminator_training_step(
-            #         generator_prediction.detach(), discriminator_target, opt_d, "supervised"
-            #     )
-            #     logs.update(discriminator_logs)
         else:
             logs = self.discriminator_training_step(
                 generator_prediction.detach(), discriminator_target, opt_d, "supervised"
@@ -66,6 +69,15 @@ class ACSSL(AnatomicallyConstrainedLearningBase):
         return logs
 
     def unsupervised_training_step(self, batch, batch_idx) -> Dict:
+        """
+        Unsupervised training step for batch
+        Args:
+            batch: input batch
+            batch_idx: index of current batch
+        Returns:
+            logs: metrics for current state of training
+        """
+
         opt_g, opt_d = self.optimizers()
 
         x = batch[Tags.img]
@@ -74,8 +86,6 @@ class ACSSL(AnatomicallyConstrainedLearningBase):
         discriminator_target = self.get_discriminator_target(generator_prediction, **batch)
         self.save_sample(generator_prediction, discriminator_target)
 
-        # if self.global_step >= self.hparams.pretraining_steps:
-        # if self.current_epoch >= self.pretraining_epochs and :
         if self.current_epoch >= self.pretraining_epochs and self.training_schedule[self.global_step % len(self.training_schedule)]:
             generator_target = torch.ones(x.shape[0], self.output_size).type_as(generator_prediction)
 
@@ -94,11 +104,6 @@ class ACSSL(AnatomicallyConstrainedLearningBase):
             opt_g.step()
             opt_g.zero_grad()
 
-            # if (batch_idx + 1) % self.hparams.discriminator_step_update == 0:
-            #     discriminator_logs = self.discriminator_training_step(
-            #         generator_prediction.detach(), discriminator_target, opt_d, "unsupervised"
-            #     )
-            #     logs.update(discriminator_logs)
         else:
             logs = self.discriminator_training_step(
                 generator_prediction.detach(), discriminator_target, opt_d, "unsupervised"
@@ -128,8 +133,6 @@ class ACSSL(AnatomicallyConstrainedLearningBase):
         Returns:
             dict, loss and log metrics.
         """
-        # if not self.hparams.freeze_discriminator or self.global_step < self.hparams.pretraining_steps:
-        # if not self.hparams.freeze_discriminator or self.current_epoch >= self.pretraining_epochs:
         if self.hparams.mem_len > 0:
             generator_prediction, discriminator_target = self.get_samples(generator_prediction)
 
@@ -155,11 +158,7 @@ class ACSSL(AnatomicallyConstrainedLearningBase):
         optimizer.zero_grad()
 
         return logs
-        # else:
-        #     return {}
 
     def on_validation_end(self) -> None:
         if self.current_epoch == self.pretraining_epochs:
             torch.save(self.state_dict(), "discriminator.ckpt")
-
-

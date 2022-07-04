@@ -39,28 +39,3 @@ class SemiSupervisedLearningDataset(Dataset):
             ValueError if a pool specific attribute cannot be set.
         """
         return self._pool
-
-
-if __name__ == "__main__":
-    from vital.data.acdc.dataset import Acdc
-    from vital.data.config import Subset as ACDC_SUB
-
-    path = "C:\\Users\\Arnaud Judge\\Documents\\Vitalab\\new_repo\\cardiac-anatomical-validity\\vital\\vital\\data\\acdc\\test.h5"
-
-    # Case 1 : no pool
-    ds = Acdc(Path(path), image_set=ACDC_SUB.TRAIN)
-    print(len(ds))
-
-    ssl_ds = SemiSupervisedLearningDataset(ds, label_split=0.5)
-
-    print(len(ssl_ds))
-    print(len(ssl_ds.pool))
-
-    # Case 2 : with pool
-    ds = Acdc(Path(path), image_set=ACDC_SUB.TRAIN)
-    pool = Acdc(Path(path), image_set=ACDC_SUB.VAL)
-
-    ssl_ds = SemiSupervisedLearningDataset(ds, pool=pool)
-
-    print(len(ssl_ds))
-    print(len(ssl_ds.pool))
