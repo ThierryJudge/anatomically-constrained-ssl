@@ -23,9 +23,9 @@ trainer:
 callbacks:
   early_stopping:
     patience: 300
-    monitor: val_dice
+    monitor: val/dice
     mode: max
   model_checkpoint:
-    monitor: val_dice
+    monitor: val/dice
     mode: max
     filename: "{epoch}-{val_dice:.2f}"
