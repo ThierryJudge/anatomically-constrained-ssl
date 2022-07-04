@@ -1,0 +1,6 @@
+early_stopping_anatomical:
+  _target_: anatomically_constrained_ssl.system.anatomical_val_callback.EarlyStoppingWithDivergenceWaitCount
+  patience: 20
+  monitor: val_AnatomicalValidity
+  mode: max
+  divergence_threshold: 0.01 # Stop if anatomical validity falls to 0.

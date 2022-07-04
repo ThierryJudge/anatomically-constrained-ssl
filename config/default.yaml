@@ -1,0 +1,31 @@
+# Default configuration.
+
+defaults:
+  - vital_default # This references default config from vital.config.vital_default.yaml
+
+  - override task/model: enet
+  - override data: camus-ssl
+  - override logger: comet/online
+  - override callbacks:
+    - learning_rate_monitor
+    - early_stopping
+    - model_checkpoint
+
+seed: 0
+
+logger:
+  project_name: anatomically-constrained-ssl
+  workspace: thierryjudge
+
+trainer:
+  max_epochs: 1000
+
+callbacks:
+  early_stopping:
+    patience: 300
+    monitor: val_dice
+    mode: max
+  model_checkpoint:
+    monitor: val_dice
+    mode: max
+    filename: "{epoch}-{val_dice:.2f}"

@@ -1,0 +1,28 @@
+# @package _global_
+# This header make any parameters in these configs global.
+
+defaults:
+  - default
+  - override /task : acssl
+  - override /callbacks:
+        - learning_rate_monitor
+        - early_stopping
+        - model_checkpoint
+        - early_stopping_anatomical # Stop if anatomical validity falls to 0.
+
+ckpt_path: ${model_path}/${choices.data}-baseline${frac:${data.label_split}}-${seed}.ckpt
+weights_only: True # Only loads the weights.
+strict: False # Loading segmentation network in ACSSL will result in error if True
+name: ${choices.data}-acadv${frac:${data.label_split}}-${seed}.ckpt
+
+
+callbacks:
+  model_checkpoint:
+    filename: "{epoch}-{val_dice:.2f}-{val_AnatomicalValidity:.2f}"
+    monitor: val_AnatomicalValidity
+    mode: max
+  early_stopping_anatomical:
+    patience: 20
+    monitor: supervised_anatomical_validity
+    mode: max
+    divergence_threshold: 0.01 # Stop if anatomical validity falls to 0.

@@ -1,0 +1,28 @@
+defaults:
+  - segmentation
+
+_target_: anatomically_constrained_ssl.task.acssl.ACSSL
+
+lambda_sup: 1
+lambda_adv: 0.025
+lambda_semi: 0.01
+mem_len: 5000
+pretraining_steps: 1000
+#freeze_discriminator: True
+# discriminator_step_update: 10
+training_schedule: "5:1"
+
+optim:
+  lr: 0.0002
+
+train_log_kwargs:
+  prog_bar: False
+  logger: True
+  on_step: False
+  on_epoch: True
+
+val_log_kwargs:
+  prog_bar: False
+  logger: True
+  on_step: False
+  on_epoch: True

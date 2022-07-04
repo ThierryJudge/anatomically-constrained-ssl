@@ -1,0 +1,7 @@
+# @package _global_
+# This header make any parameters in these configs global.
+
+defaults:
+  - default
+
+name: ${choices.data}-${choices.system}${frac:${data.label_split}}-${seed}.ckpt

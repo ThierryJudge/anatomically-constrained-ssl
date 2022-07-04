@@ -1,0 +1,22 @@
+# @package _global_
+# This header make any parameters in these configs global.
+
+defaults:
+  - acadv
+  - override /callbacks:
+        - learning_rate_monitor
+        - early_stopping
+        - model_checkpoint
+        - early_stopping_anatomical
+
+name: ${choices.data}-acssl${frac:${data.label_split}}-${seed}.ckpt
+
+data:
+  p: null
+
+callbacks:
+  early_stopping_anatomical:
+    patience: 20
+    monitor: supervised_anatomical_validity
+    mode: max
+    divergence_threshold: 0.01 # Stop if anatomical validity falls to 0.

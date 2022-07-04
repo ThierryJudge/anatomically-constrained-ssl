@@ -1,0 +1,4 @@
+defaults:
+  - segmentation
+
+_target_: anatomically_constrained_ssl.task.ssl_task.Baseline

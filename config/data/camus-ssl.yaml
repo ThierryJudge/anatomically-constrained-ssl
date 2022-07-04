@@ -1,0 +1,9 @@
+defaults:
+  - camus
+  - ssl
+  - override results_processors@_global_.results_processors:
+      - camus/segmentation_metrics
+      - camus/anatomical_metrics
+
+_target_: anatomically_constrained_ssl.data.camus.CamusSSLDataModule
+pin_memory: False

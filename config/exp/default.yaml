@@ -1,0 +1,5 @@
+# @package _global_
+
+name: null
+model_path: ${oc.env:SAVE_PATH}/${seed}
+best_model_save_path: ${model_path}/${name}
